@@ -2,14 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, CheckCircle2, RotateCcw } from 'lucide-react';
 import { RespondentForm } from './respondent/RespondentForm';
 import { FormItem } from '../types';
-import { createClient } from '@supabase/supabase-js';
-
-// Public Supabase client (anon key only - safe for browser)
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const publicSupabase = supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+import { supabase } from '../../src/lib/supabase';
 
 interface PublicFormViewProps {
   formId: string;
@@ -26,11 +19,11 @@ export const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
     let cancelled = false;
     (async () => {
       try {
-        if (!publicSupabase) {
+        if (!supabase) {
           if (!cancelled) setError('Supabase not configured.');
           return;
         }
-        const { data, error: dbErr } = await publicSupabase
+        const { data, error: dbErr } = await supabase
           .from('forms')
           .select('*')
           .eq('id', formId)
@@ -179,13 +172,13 @@ export const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
       onSubmitSuccess={async (data) => {
         // Submit response to the server
         try {
-          if (publicSupabase) {
-            await publicSupabase.from('form_responses').insert({
+          if (supabase) {
+            await supabase.from('form_responses').insert({
               id: `resp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
               form_id: formId,
               answers: data.responses,
             });
-            await publicSupabase.rpc('increment_responses_count', { form_id_param: formId }).catch(() => {});
+            await supabase.rpc('increment_responses_count', { form_id_param: formId }).catch(() => {});
           }
         } catch (err) {
           console.error('Failed to submit response:', err);
