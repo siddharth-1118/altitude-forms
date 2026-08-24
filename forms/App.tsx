@@ -7,6 +7,7 @@ import { FormBuilder } from './components/builder/FormBuilder';
 import { AnalyticsView } from './components/analytics/AnalyticsView';
 import { TeamView } from './components/team/TeamView';
 import { RespondentForm } from './components/respondent/RespondentForm';
+import { PublicFormView } from './components/PublicFormView';
 import { HomeView } from './components/home/HomeView';
 import { SettingsView } from './components/settings/SettingsView';
 import { ResponsesView } from './components/responses/ResponsesView';
@@ -240,26 +241,7 @@ import { Check, Sparkles, X } from 'lucide-react';export function App() {
 
   // Public form view: /form/:id (no auth required)
   if (publicFormId) {
-    const publicForm = forms.find((f) => f.id === publicFormId);
-    if (!publicForm) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center p-8 bg-white rounded-2xl shadow-lg">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Form not found</h1>
-            <p className="text-gray-500">This form may have been removed or the link is invalid.</p>
-          </div>
-        </div>
-      );
-    }
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <RespondentForm
-          form={publicForm}
-          onBackToBuilder={() => { window.location.href = '/'; }}
-          onSubmitSuccess={handleRespondentSubmit}
-        />
-      </div>
-    );
+    return <PublicFormView formId={publicFormId} />;
   }
 
   // If in Respondent Preview Mode (Image 7)
