@@ -2,6 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, CheckCircle2, RotateCcw } from 'lucide-react';
 import { RespondentForm } from './respondent/RespondentForm';
 import { FormItem } from '../types';
+import { createClient } from '@supabase/supabase-js';
+
+// Public Supabase client (anon key only - safe for browser)
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const publicSupabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null;
 
 interface PublicFormViewProps {
   formId: string;
@@ -18,12 +26,21 @@ export const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/forms/public/${formId}`);
-        if (!res.ok) {
+        if (!publicSupabase) {
+          if (!cancelled) setError('Supabase not configured.');
+          return;
+        }
+        const { data, error: dbErr } = await publicSupabase
+          .from('forms')
+          .select('*')
+          .eq('id', formId)
+          .eq('status', 'live')
+          .single();
+
+        if (dbErr || !data) {
           if (!cancelled) setError('Form not found or no longer available.');
           return;
         }
-        const data = await res.json();
         if (!cancelled) {
           setForm({
             id: data.id,
@@ -33,7 +50,7 @@ export const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
             status: 'live',
             fields: data.fields,
             responsesCount: 0,
-            updatedAt: data.updatedAt,
+            updatedAt: data.updated_at,
           });
         }
       } catch (err) {
@@ -162,11 +179,14 @@ export const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
       onSubmitSuccess={async (data) => {
         // Submit response to the server
         try {
-          await fetch(`/api/forms/${formId}/respond`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ answers: data.responses }),
-          });
+          if (publicSupabase) {
+            await publicSupabase.from('form_responses').insert({
+              id: `resp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+              form_id: formId,
+              answers: data.responses,
+            });
+            await publicSupabase.rpc('increment_responses_count', { form_id_param: formId }).catch(() => {});
+          }
         } catch (err) {
           console.error('Failed to submit response:', err);
         }
