@@ -1,0 +1,263 @@
+import { FormItem, AnalyticsData, DirectoryFolder, Workflow, TeamMember } from '../types';
+
+export const INITIAL_FORMS: FormItem[] = [
+  {
+    id: 'form-vendor-onboarding',
+    title: 'Enterprise Vendor Onboarding',
+    description: 'Please complete this securely to establish your vendor profile. Ensure all technical documentation is attached.',
+    category: 'Procurement & Legal',
+    status: 'live',
+    responsesCount: 0,
+    updatedAt: 'Just now',
+    folderId: 'dir-exec-finance',
+    headerBadgeIcon: 'building',
+    bannerImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop',
+    fields: [
+      {
+        id: 'f-legal-entity',
+        type: 'short_text',
+        label: 'Legal Entity Name',
+        placeholder: 'e.g. Acme Corp LLC',
+        required: true,
+        section: '1. Company Details',
+      },
+      {
+        id: 'f-dba',
+        type: 'short_text',
+        label: 'Doing Business As (DBA)',
+        placeholder: 'Optional',
+        required: false,
+        section: '1. Company Details',
+      },
+      {
+        id: 'f-primary-services',
+        type: 'long_text',
+        label: 'Primary Services Provided',
+        placeholder: 'Describe the core services or products...',
+        required: true,
+        section: '1. Company Details',
+      },
+      {
+        id: 'f-digital-signature',
+        type: 'digital_signature',
+        label: 'Digital Signature',
+        placeholder: 'Sign here',
+        required: true,
+        section: '2. Authorization',
+        helpText: 'I certify that the information provided is accurate and I am authorized to submit this on behalf of the company.',
+      },
+    ],
+  },
+  {
+    id: 'form-feedback-q3',
+    title: 'Customer Feedback Survey Q3',
+    description: 'Quarterly voice-of-customer intelligence gathering to optimize product experience.',
+    category: 'Product Feedback',
+    status: 'live',
+    responsesCount: 0,
+    updatedAt: 'Just now',
+    folderId: 'dir-marketing-reqs',
+    fields: [
+      {
+        id: 'f-q3-name',
+        type: 'short_text',
+        label: 'Full Name',
+        placeholder: 'Short answer text',
+        required: true,
+      },
+      {
+        id: 'f-q3-appt',
+        type: 'multiple_choice',
+        label: 'Appointment Preference',
+        options: ['Morning (9AM - 12PM)', 'Afternoon (1PM - 5PM)'],
+        aiSuggested: true,
+        required: false,
+      },
+      {
+        id: 'f-q3-rating',
+        type: 'multiple_choice',
+        label: 'Overall Experience Rating',
+        options: ['Exceptional', 'Good', 'Needs Work'],
+        required: true,
+      },
+      {
+        id: 'f-q3-feedback',
+        type: 'long_text',
+        label: 'Detailed Feedback on UI & Checkout',
+        placeholder: 'Describe your thoughts...',
+        required: false,
+      },
+    ],
+  },
+  {
+    id: 'form-hr-onboarding',
+    title: 'New Employee Global Onboarding',
+    description: 'Internal documentation, equipment preferences, and legal compliance.',
+    category: 'Human Resources',
+    status: 'live',
+    responsesCount: 0,
+    updatedAt: '2 days ago',
+    folderId: 'dir-hr-onboarding',
+    fields: [
+      { id: 'f-hr-1', type: 'short_text', label: 'Full Legal Name', placeholder: 'First and Last Name', required: true },
+      { id: 'f-hr-2', type: 'email', label: 'Personal Email Address', placeholder: 'name@example.com', required: true },
+      { id: 'f-hr-3', type: 'calendar_booking', label: 'Orientation Date', placeholder: 'Select start date', required: true },
+    ],
+  },
+];
+
+export const INITIAL_ANALYTICS: AnalyticsData = {
+  formId: 'form-feedback-q3',
+  formTitle: 'Customer Feedback Survey Q3',
+  isLiveCollecting: true,
+  responsesCount: 1248,
+  updatedText: 'JUST NOW',
+  nlpSummary: {
+    positivePct: 85,
+    frictionKeyword: 'checkout latency',
+    summaryHeadline: 'Users are 85% positive about the new UI, but highlight checkout latency as a critical friction point.',
+    topPraise: { label: 'Clean interface', pct: 42 },
+    topComplaint: { label: 'Slow load times', pct: 28 },
+    suggestedAction: 'Generate Dev Ticket',
+  },
+  dataIntegrityAlert: {
+    suspiciousPct: 0.5,
+    description: 'Suspicious activity detected in recent batch.',
+    botCount: 6,
+    botTimeWindow: 'under 2 seconds from identical IP blocks.',
+  },
+  responseTimeHeatmap: [
+    { interval: '< 10s', count: 180, pct: 14, colorLevel: 'light' },
+    { interval: '30s', count: 320, pct: 26, colorLevel: 'medium' },
+    { interval: '1m', count: 480, pct: 38, colorLevel: 'dark' },
+    { interval: '> 2m', count: 268, pct: 22, colorLevel: 'navy' },
+  ],
+  completionFunnel: [
+    { step: 'Viewed Form', pct: 100, count: 4520 },
+    { step: 'Started Form', pct: 78, count: 3525 },
+    {
+      step: 'Reached Q5 (Friction point)',
+      pct: 42,
+      count: 1898,
+      isFrictionPoint: true,
+      dropOffText: '↓ 36% drop-off here',
+    },
+    { step: 'Completed', pct: 27, count: 1248 },
+  ],
+  geoDistribution: [
+    { region: 'North America', pct: 45 },
+    { region: 'Europe', pct: 32 },
+    { region: 'Asia Pacific', pct: 18 },
+  ],
+  liveFeed: [
+    {
+      id: '#4928',
+      sentiment: 'positive',
+      comment: 'Really love the new layout, it made finding the settings much more intuitive!',
+      timestamp: 'Just now',
+      rating: 5,
+    },
+    {
+      id: '#4927',
+      sentiment: 'negative',
+      comment: 'Took way too long to submit payment info. Needs optimization.',
+      timestamp: '2 mins ago',
+      rating: 2,
+    },
+    {
+      id: '#4926',
+      sentiment: 'neutral',
+      comment: "It's okay. Standard experience across most modern forms.",
+      timestamp: '5 mins ago',
+      rating: 3,
+    },
+    {
+      id: '#4925',
+      sentiment: 'positive',
+      comment: 'The voice dictation feature saved me at least 5 minutes. Outstanding polish!',
+      timestamp: '8 mins ago',
+      rating: 5,
+    },
+  ],
+};
+
+export const INITIAL_DIRECTORIES: DirectoryFolder[] = [
+  {
+    id: 'dir-hr-onboarding',
+    name: 'HR Onboarding',
+    formsCount: 12,
+    updatedAt: 'Updated 2d ago',
+    color: '#3b2bee',
+    iconType: 'folder',
+  },
+  {
+    id: 'dir-marketing-reqs',
+    name: 'Marketing Reqs',
+    formsCount: 8,
+    updatedAt: 'Updated 5h ago',
+    color: '#7c3aed',
+    iconType: 'briefcase',
+  },
+  {
+    id: 'dir-exec-finance',
+    name: 'Exec Finance',
+    formsCount: 3,
+    updatedAt: 'Updated 1w ago',
+    isLocked: true,
+    color: '#475569',
+    iconType: 'lock',
+  },
+];
+
+export const INITIAL_WORKFLOWS: Workflow[] = [
+  {
+    id: 'wf-1',
+    name: 'HR Alert Pipeline',
+    trigger: 'On Form Submit',
+    triggerIcon: 'send',
+    enabled: true,
+    steps: [
+      { id: 's1', label: 'Notify #hr-alerts', type: 'notification', icon: 'file-text' },
+      { id: 's2', label: 'Create Ticket', type: 'action', icon: 'ticket' },
+    ],
+  },
+  {
+    id: 'wf-2',
+    name: 'Executive Intelligence Summary',
+    trigger: 'Weekly Report',
+    triggerIcon: 'clock',
+    enabled: true,
+    isAiActive: true,
+    steps: [
+      { id: 's3', label: 'AI Summarize Data', type: 'ai', icon: 'sparkles', description: 'NLP Extraction' },
+      { id: 's4', label: 'Email Exec Team', type: 'notification', icon: 'mail' },
+    ],
+  },
+];
+
+export const INITIAL_TEAM_MEMBERS: TeamMember[] = [
+  {
+    id: 'tm-1',
+    name: 'Jane Doe',
+    email: 'jane@formx.co',
+    role: 'ADMIN',
+    avatarInitials: 'JD',
+    avatarBg: 'bg-[#3b2bee]',
+  },
+  {
+    id: 'tm-2',
+    name: 'Sam Miller',
+    email: 'sam@formx.co',
+    role: 'EDITOR',
+    avatarInitials: 'SM',
+    avatarBg: 'bg-[#818cf8]',
+  },
+  {
+    id: 'tm-3',
+    name: 'Alex Kim',
+    email: 'alex@formx.co',
+    role: 'VIEWER',
+    avatarInitials: 'AK',
+    avatarBg: 'bg-[#94a3b8]',
+  },
+];
