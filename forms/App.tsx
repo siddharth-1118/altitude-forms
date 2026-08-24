@@ -86,18 +86,26 @@ import { Check, Sparkles, X } from 'lucide-react';export function App() {
     return () => { cancelled = true; };
   }, [user, serverSynced]);
 
-  // Persist a form to the server (debounced)
+  // Persist a form to Supabase directly
   const syncFormToServer = useCallback(async (form: FormItem) => {
-    if (!user) return;
-    const token = await getToken();
     try {
-      await fetch(`/api/forms/${form.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(form),
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/forms`, {
+        method: 'POST',
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates',
+        },
+        body: JSON.stringify({
+          id: form.id, title: form.title, description: form.description,
+          category: form.category, status: form.status, fields: form.fields,
+          responses_count: form.responsesCount || 0,
+          logic_rules: form.logicRules || [], settings: form.settings || null,
+        }),
       });
     } catch { /* ignore */ }
-  }, [user, getToken]);
+  }, []);
 
   const activeForm = forms.find((f) => f.id === activeFormId) || forms[0];
 
@@ -225,17 +233,26 @@ import { Check, Sparkles, X } from 'lucide-react';export function App() {
   };
 
   const handlePublish = async () => {
-    const token = await getToken();
+    const liveForm = { ...activeForm, status: 'live' as const };
     try {
-      if (user) {
-        await fetch(`/api/forms/${activeForm.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ ...activeForm, status: 'live' }),
-        });
-      }
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/forms`, {
+        method: 'POST',
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates',
+        },
+        body: JSON.stringify({
+          id: liveForm.id, title: liveForm.title, description: liveForm.description,
+          category: liveForm.category, status: 'live', fields: liveForm.fields,
+          responses_count: liveForm.responsesCount || 0,
+          logic_rules: liveForm.logicRules || [], settings: liveForm.settings || null,
+        }),
+      });
+      setForms(prev => prev.map(f => f.id === activeForm.id ? liveForm : f));
     } catch { /* ignore */ }
-    const publicUrl = `${window.location.origin}/form/${activeForm.id}`;
+    const publicUrl = `${window.location.origin}/form/${liveForm.id}`;
     showToast(`Published! Share: ${publicUrl}`);
   };
 
