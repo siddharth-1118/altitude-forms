@@ -25,9 +25,13 @@ import {
   INITIAL_TEAM_MEMBERS,
 } from './data/initialData';
 import { FormItem, AnalyticsData, DirectoryFolder, Workflow, TeamMember } from './types';
-import { Check, Sparkles, X } from 'lucide-react';
+import { Check, Sparkles, X } from 'lucide-react';export function App() {
+  // Public form view: detect /form/:id in URL
+  const [publicFormId] = useState<string | null>(() => {
+    const match = window.location.pathname.match(/^\/form\/([^/]+)/);
+    return match ? match[1] : null;
+  });
 
-export function App() {
   const [currentTab, setCurrentTab] = useState<'home' | 'forms' | 'analytics' | 'responses' | 'team' | 'settings'>('forms');
   const [builderSubTab, setBuilderSubTab] = useState<'build' | 'settings' | 'logic'>('build');
   const [analyticsSubTab, setAnalyticsSubTab] = useState<'dashboard' | 'workflows'>('dashboard');
@@ -233,6 +237,30 @@ export function App() {
     const publicUrl = `${window.location.origin}/form/${activeForm.id}`;
     showToast(`Published! Share: ${publicUrl}`);
   };
+
+  // Public form view: /form/:id (no auth required)
+  if (publicFormId) {
+    const publicForm = forms.find((f) => f.id === publicFormId);
+    if (!publicForm) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center p-8 bg-white rounded-2xl shadow-lg">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Form not found</h1>
+            <p className="text-gray-500">This form may have been removed or the link is invalid.</p>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <RespondentForm
+          form={publicForm}
+          onBackToBuilder={() => { window.location.href = '/'; }}
+          onSubmitSuccess={handleRespondentSubmit}
+        />
+      </div>
+    );
+  }
 
   // If in Respondent Preview Mode (Image 7)
   if (isPreviewMode) {
