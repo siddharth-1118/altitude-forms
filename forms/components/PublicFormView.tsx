@@ -2,20 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, CheckCircle2, RotateCcw } from 'lucide-react';
 import { RespondentForm } from './respondent/RespondentForm';
 import { FormItem } from '../types';
-import { createClient } from '@supabase/supabase-js';
 
-// Clean standalone client — no auth state, no session persistence
-const publicSupabase =
-  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
-    ? createClient(
-        import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_ANON_KEY,
-        { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
-      )
-    : null;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 interface PublicFormViewProps {
   formId: string;
+}
+
+async function supaGet(table: string, params: string): Promise<any> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json();
 }
 
 export const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
@@ -28,21 +32,16 @@ export const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
     let cancelled = false;
     (async () => {
       try {
-        if (!publicSupabase) {
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
           if (!cancelled) setError('Supabase not configured.');
           return;
         }
-        const { data, error: dbErr } = await publicSupabase
-          .from('forms')
-          .select('*')
-          .eq('id', formId)
-          .eq('status', 'live')
-          .single();
-
-        if (dbErr || !data) {
+        const rows = await supaGet('forms', `id=eq.${formId}&status=eq.live&select=*`);
+        if (!rows || rows.length === 0) {
           if (!cancelled) setError('Form not found or no longer available.');
           return;
         }
+        const data = rows[0];
         if (!cancelled) {
           setForm({
             id: data.id,
@@ -56,6 +55,7 @@ export const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
           });
         }
       } catch (err) {
+        console.error('PublicFormView error:', err);
         if (!cancelled) setError('Failed to load form. Please try again.');
       } finally {
         if (!cancelled) setLoading(false);
@@ -108,14 +108,20 @@ export const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
       onBackToBuilder={() => {}}
       onSubmitSuccess={async (data) => {
         try {
-          if (publicSupabase) {
-            await publicSupabase.from('form_responses').insert({
+          await fetch(`${SUPABASE_URL}/rest/v1/form_responses`, {
+            method: 'POST',
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=minimal',
+            },
+            body: JSON.stringify({
               id: `resp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
               form_id: formId,
               answers: data.responses,
-            });
-            await publicSupabase.rpc('increment_responses_count', { form_id_param: formId }).catch(() => {});
-          }
+            }),
+          });
         } catch (err) {
           console.error('Failed to submit response:', err);
         }
